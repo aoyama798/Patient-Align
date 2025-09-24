@@ -28,7 +28,7 @@ input { padding: 4px; margin-right: 5px; border-radius: 4px; border: 1px solid #
 <body>
 
 <h2>病人录入系统</h2>
-<span id="settingsGear">⚙️</span>
+
 <div>
   <input type="text" id="patientName" placeholder="病人姓名">
   <input list="doctorList" id="doctorInput" placeholder="选择或输入医生">
@@ -37,14 +37,17 @@ input { padding: 4px; margin-right: 5px; border-radius: 4px; border: 1px solid #
 </div>
 
 <h2>病人列表</h2>
-<div class="container" id="columnsContainer"></div>
+  <span id="settingsGear">⚙️</span>
+
 
 <div class="switchView">
   <span>显示模式:</span>
   <button id="currentBtn">当前在院</button>
   <button id="allBtn">所有病人</button>
 </div>
-
+  
+<div class="container" id="columnsContainer"></div>
+  
 <div class="operations">
   <div class="op-cell" id="dischargeCell">出院</div>
   <div class="op-cell" id="deleteCell">删除</div>
