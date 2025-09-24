@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>创二病人-管床医生分配系统</title>
+  <style>
+    body { font-family: "Segoe UI", sans-serif; margin: 20px; }
+    h2 { margin-top: 30px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; min-width: 80px; }
+    .discharged { color: #999; text-decoration: line-through; }
+    .placeholder { color: #ccc; }
+    select, input { padding: 3px; }
+    button { margin: 2px; }
+    .controls { margin-top: 10px; }
+
+
+    body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 20px;
+  background-color: #f9fafb;
+  color: #333;
+}
+
+h2 {
+  margin-top: 30px;
+  color: #1f2937;
+  border-bottom: 2px solid #3b82f6;
+  padding-bottom: 5px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th, td {
+  border: 1px solid #e5e7eb;
+  padding: 10px;
+  text-align: center;
+  min-width: 80px;
+  font-size: 14px;
+}
+
+th {
+  background-color: #3b82f6;
+  color: white;
+  font-weight: 600;
+}
+
+tr:nth-child(even) td {
+  background-color: #f3f4f6;
+}
+
+tr:hover td {
+  background-color: #e0f2fe;
+}
+
+.discharged {
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.placeholder {
+  color: #d1d5db;
+}
+
+input[type="text"], input[list], select {
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: none;
+  font-size: 14px;
+  width: 180px;
+  transition: 0.2s;
+}
+
+input[type="text"]:focus, input[list]:focus, select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+}
+
+button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background-color: #3b82f6;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+button:hover {
+  background-color: #2563eb;
+}
+
+.controls {
+  margin-top: 10px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.controls input[type="radio"] {
+  margin-right: 5px;
+}
+
+  </style>
+</head>
+
+
+
+
+
+
+
+
+  
+<body>
+  <h2>创二病人-管床分配系统</h2>
+
+  <!-- 入院操作 -->
+  <div style="margin-top:15px;">
+    <input type="text" id="patientName" placeholder="输入病人姓名">
+    <input list="doctorListDatalist" id="doctorName" placeholder="选择或输入管床医生姓名">
+    <datalist id="doctorListDatalist"></datalist>
+    <button onclick="admitPatient()">入院</button>
+  </div>
+
+  <!-- 汇总表 -->
+  <h2>汇总表</h2>
+  <div class="controls">
+    <label><input type="radio" name="viewMode" value="current" checked onchange="renderSummary()"> 当前在院</label>
+    <label><input type="radio" name="viewMode" value="all" onchange="renderSummary()"> 所有病人</label>
+  </div>
+  <table id="summaryTable"></table>
+
+  <!-- 病人列表 -->
+  <h2>病人列表</h2>
+  <table id="patientTable">
+    <tr><th>姓名</th><th>分配管床医生</th><th>操作</th></tr>
+  </table>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCe5seH8kOkGOfquiUYvFHz2bvcDssWGMs",
+      authDomain: "patient-reminder-95c8d.firebaseapp.com",
+      databaseURL: "https://patient-reminder-95c8d-default-rtdb.firebaseio.com",
+      projectId: "patient-reminder-95c8d",
+      storageBucket: "patient-reminder-95c8d.firebasestorage.app",
+      messagingSenderId: "726326025491",
+      appId: "1:726326025491:web:6b77dce30f7c0f9ddc4ee6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const patientsRef = ref(db, 'patients');
+
+    let patients = [];
+
+    // 监听数据库变化
+    onValue(patientsRef, snap => {
+      patients = snap.val() || [];
+      renderPatients();
+      renderSummary();
+      renderDoctorDatalist();
+    });
+
+    // 入院
+    function admitPatient() {
+      const name = document.getElementById("patientName").value.trim();
+      let doctor = document.getElementById("doctorName").value.trim();
+      if (!name || !doctor) return;
+
+      patients.push({ name, doctor, discharged: false, timestamp: Date.now() });
+      set(patientsRef, patients);
+
+      document.getElementById("patientName").value = "";
+      document.getElementById("doctorName").value = "";
+    }
+
+    // 出院
+    function dischargePatient(index) {
+      patients[index].discharged = true;
+      set(patientsRef, patients);
+    }
+
+    // 删除
+    function deletePatient(index) {
+      if (confirm(`确认删除病人：${patients[index].name}？`)) {
+        patients.splice(index, 1);
+        set(patientsRef, patients);
+      }
+    }
+
+    // 重新分配医生（可输入）
+    function reassignDoctor(index) {
+      const input = document.getElementById(`reassignInput-${index}`);
+      const newDoctor = input.value.trim();
+      if (newDoctor) {
+        patients[index].doctor = newDoctor;
+        set(patientsRef, patients);
+      }
+    }
+
+    // 渲染病人列表
+    function renderPatients() {
+      const table = document.getElementById("patientTable");
+      table.innerHTML = "<tr><th>姓名</th><th>管床医生</th><th>操作</th></tr>";
+
+      patients.forEach((p, i) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td class="${p.discharged ? 'discharged' : ''}">${p.name}</td>
+          <td>
+            <input list="doctorListDatalist" id="reassignInput-${i}" value="${p.doctor}" ${p.discharged ? 'disabled' : ''} onblur="reassignDoctor(${i})">
+          </td>
+          <td>
+            ${!p.discharged ? `<button onclick="dischargePatient(${i})">出院</button>` : ''}
+            <button onclick="deletePatient(${i})">删除</button>
+          </td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    // 渲染汇总表格
+    function renderSummary() {
+      const table = document.getElementById("summaryTable");
+      table.innerHTML = "";
+      if (patients.length === 0) return;
+
+      const viewMode = document.querySelector('input[name="viewMode"]:checked').value;
+
+      const doctorSet = new Set(patients.map(p => p.doctor));
+      const doctors = Array.from(doctorSet);
+
+      const doctorPatients = doctors.map(doc =>
+        patients.filter(p => p.doctor === doc).map(p => {
+          if (viewMode === "current") {
+            return !p.discharged ? p.name : null;
+          } else {
+            return p.discharged ? `${p.name}(已出院)` : p.name;
+          }
+        }).filter(Boolean)
+      );
+
+      const maxLen = Math.max(...doctorPatients.map(arr => arr.length), 0);
+
+      const header = document.createElement("tr");
+      doctors.forEach(doc => {
+        const th = document.createElement("th");
+        th.textContent = doc;
+        header.appendChild(th);
+      });
+      table.appendChild(header);
+
+      for (let i = 0; i < maxLen; i++) {
+        const row = document.createElement("tr");
+        doctors.forEach((doc, d) => {
+          const td = document.createElement("td");
+          td.textContent = doctorPatients[d][i] || " ";
+          if (td.textContent === " ") td.className = "placeholder";
+          row.appendChild(td);
+        });
+        table.appendChild(row);
+      }
+    }
+
+    // 渲染 datalist
+    function renderDoctorDatalist() {
+      const datalist = document.getElementById("doctorListDatalist");
+      datalist.innerHTML = "";
+      const doctorSet = new Set(patients.map(p => p.doctor));
+      Array.from(doctorSet).forEach(doc => {
+        const option = document.createElement("option");
+        option.value = doc;
+        datalist.appendChild(option);
+      });
+    }
+
+    // 将函数挂到 window，让 HTML 事件可以调用
+    window.admitPatient = admitPatient;
+    window.dischargePatient = dischargePatient;
+    window.deletePatient = deletePatient;
+    window.reassignDoctor = reassignDoctor;
+    window.renderSummary = renderSummary;
+  </script>
+</body>
+</html>
