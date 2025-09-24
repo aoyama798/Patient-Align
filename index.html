@@ -4,11 +4,12 @@
 <meta charset="UTF-8">
 <title>病人管理系统</title>
 <style>
+/* 页面整体 */
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: #f4f6f8;
   margin: 0;
-  padding: 20px;
+  padding: 15px;
   color: #333;
 }
 
@@ -17,6 +18,7 @@ h1 {
   text-align: center;
   color: #2c3e50;
   margin-bottom: 10px;
+  font-size: 1.6rem;
 }
 
 h2 {
@@ -24,34 +26,36 @@ h2 {
   margin-top: 20px;
   margin-bottom: 10px;
   display: inline-block;
+  font-size: 1.2rem;
 }
 
 #settingsGear {
   cursor: pointer;
   font-size: 22px;
-  margin-left: 10px;
+  margin-left: 8px;
   vertical-align: middle;
 }
 
 /* 输入区域 */
 div input[type="text"], div input[list] {
-  padding: 6px 8px;
-  margin-right: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
   border-radius: 6px;
   border: 1px solid #ccc;
   outline: none;
   font-size: 14px;
+  width: 100%;
+  max-width: 200px;
 }
 
-div input[type="text"]:focus, div input[list]:focus {
+div input:focus {
   border-color: #3498db;
   box-shadow: 0 0 5px rgba(52,152,219,0.4);
 }
 
 /* 按钮 */
 button {
-  padding: 6px 12px;
-  margin-right: 5px;
+  padding: 8px 12px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -73,7 +77,6 @@ button:hover {
 .switchView button {
   background-color: #ecf0f1;
   color: #2c3e50;
-  font-weight: bold;
 }
 
 .switchView button:hover {
@@ -82,9 +85,8 @@ button:hover {
 
 /* 容器布局 */
 .container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  display: grid;
+  gap: 15px;
   margin-top: 15px;
 }
 
@@ -93,36 +95,32 @@ button:hover {
   background: #ffffff;
   padding: 12px;
   border-radius: 10px;
-  min-width: 180px;
+  min-width: 160px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transition: transform 0.2s;
-}
-
-.column-container:hover {
-  transform: translateY(-2px);
 }
 
 .column-container h3 {
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   cursor: pointer;
   color: #2c3e50;
+  font-size: 1rem;
 }
 
 /* 病人卡片 */
 .patient {
   background: #d0eaff;
   margin: 6px 0;
-  padding: 6px 8px;
+  padding: 10px;
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.2s, transform 0.1s;
   user-select: none;
+  font-size: 0.95rem;
 }
 
 .patient:hover {
   background-color: #a9d6ff;
-  transform: translateY(-1px);
 }
 
 .patient.recent {
@@ -132,6 +130,7 @@ button:hover {
 /* 操作区 */
 .operations {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-top: 20px;
 }
@@ -140,25 +139,22 @@ button:hover {
   background: #ffdede;
   padding: 12px;
   border-radius: 8px;
-  flex: 1;
+  flex: 1 1 100px;
   text-align: center;
   font-weight: bold;
   cursor: grab;
-  transition: background-color 0.2s, transform 0.1s;
+  transition: background-color 0.2s;
 }
 
 .op-cell:hover {
   background-color: #ffbaba;
-  transform: translateY(-1px);
 }
 
 /* 模态框 */
 .modal-bg {
   position: fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
+  top:0; left:0;
+  width:100%; height:100%;
   background: rgba(0,0,0,0.5);
   display: none;
   justify-content: center;
@@ -168,35 +164,29 @@ button:hover {
 
 .modal {
   background: #fff;
-  padding: 25px;
+  padding: 20px;
   border-radius: 12px;
-  min-width: 300px;
+  min-width: 280px;
+  max-width: 90%;
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
 .modal input {
   width: 100%;
-  padding: 6px 8px;
+  padding: 8px 10px;
   margin-bottom: 12px;
   border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 14px;
 }
 
 .modal button {
   width: 48%;
   margin-right: 4%;
-  background-color: #3498db;
-  color: white;
 }
 
 .modal button:last-child {
   margin-right: 0;
   background-color: #95a5a6;
-}
-
-.modal button:hover {
-  opacity: 0.9;
 }
 
 /* 页脚 */
@@ -205,7 +195,41 @@ div[style*="text-align: center"] {
   font-size: 12px;
   margin-top: 25px;
 }
+
+/* ===== 响应式布局 ===== */
+
+/* 手机（小屏 < 600px）：一列布局 */
+@media (max-width: 600px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+  .patient {
+    font-size: 1rem;
+    padding: 12px;
+  }
+  .operations {
+    flex-direction: column;
+  }
+  .op-cell {
+    flex: 1 1 auto;
+  }
+}
+
+/* 平板（中屏 600-900px）：两列布局 */
+@media (min-width: 600px) and (max-width: 900px) {
+  .container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 电脑（大屏 > 900px）：多列自适应 */
+@media (min-width: 900px) {
+  .container {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
 </style>
+
 
 
 
