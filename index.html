@@ -4,30 +4,216 @@
 <meta charset="UTF-8">
 <title>病人管理系统</title>
 <style>
-body { font-family: "Segoe UI", sans-serif; background: #f0f2f5; padding: 20px; }
-h2 { display: inline-block; margin-bottom: 10px; }
-#settingsGear { cursor: pointer; font-size: 22px; margin-left: 10px; }
-.container { display: flex; gap: 20px; margin-bottom: 10px; }
-.column-container { background: #fff; padding: 10px; border-radius: 8px; min-width: 150px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-.column-container h3 { text-align: center; margin-bottom: 10px; cursor: pointer; }
-.patient { background: #d0eaff; margin: 5px 0; padding: 5px; border-radius: 4px; cursor: pointer; }
-.patient.recent { background: #b6f1b0; }
-.operations { display: flex; gap: 10px; margin-top: 20px; }
-.op-cell { background: #ffdede; padding: 10px; border-radius: 5px; flex: 1; text-align: center; cursor: grab; }
-.switchView { margin-top: 10px; }
-.switchView span { margin-right: 10px; font-weight: bold; }
-button { padding: 5px 8px; margin-right: 5px; border: none; border-radius: 4px; cursor: pointer; }
-button:hover { background-color: #ddd; }
-input { padding: 4px; margin-right: 5px; border-radius: 4px; border: 1px solid #ccc; }
-.modal-bg { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; }
-.modal { background:#fff; padding:20px; border-radius:8px; min-width:250px; }
-.modal input { width: 100%; margin-bottom: 10px; }
-.modal button { width: 48%; }
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+
+/* 标题 */
+h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+h2 {
+  color: #34495e;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+#settingsGear {
+  cursor: pointer;
+  font-size: 22px;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+/* 输入区域 */
+div input[type="text"], div input[list] {
+  padding: 6px 8px;
+  margin-right: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 14px;
+}
+
+div input[type="text"]:focus, div input[list]:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 5px rgba(52,152,219,0.4);
+}
+
+/* 按钮 */
+button {
+  padding: 6px 12px;
+  margin-right: 5px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  background-color: #3498db;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #2980b9;
+}
+
+/* 切换视图按钮 */
+.switchView {
+  margin-top: 10px;
+}
+
+.switchView button {
+  background-color: #ecf0f1;
+  color: #2c3e50;
+  font-weight: bold;
+}
+
+.switchView button:hover {
+  background-color: #bdc3c7;
+}
+
+/* 容器布局 */
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 15px;
+}
+
+/* 医生列 */
+.column-container {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 10px;
+  min-width: 180px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+}
+
+.column-container:hover {
+  transform: translateY(-2px);
+}
+
+.column-container h3 {
+  text-align: center;
+  margin-bottom: 12px;
+  cursor: pointer;
+  color: #2c3e50;
+}
+
+/* 病人卡片 */
+.patient {
+  background: #d0eaff;
+  margin: 6px 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  user-select: none;
+}
+
+.patient:hover {
+  background-color: #a9d6ff;
+  transform: translateY(-1px);
+}
+
+.patient.recent {
+  background-color: #b6f1b0 !important;
+}
+
+/* 操作区 */
+.operations {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.op-cell {
+  background: #ffdede;
+  padding: 12px;
+  border-radius: 8px;
+  flex: 1;
+  text-align: center;
+  font-weight: bold;
+  cursor: grab;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.op-cell:hover {
+  background-color: #ffbaba;
+  transform: translateY(-1px);
+}
+
+/* 模态框 */
+.modal-bg {
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  min-width: 300px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.modal input {
+  width: 100%;
+  padding: 6px 8px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.modal button {
+  width: 48%;
+  margin-right: 4%;
+  background-color: #3498db;
+  color: white;
+}
+
+.modal button:last-child {
+  margin-right: 0;
+  background-color: #95a5a6;
+}
+
+.modal button:hover {
+  opacity: 0.9;
+}
+
+/* 页脚 */
+div[style*="text-align: center"] {
+  color: #95a5a6;
+  font-size: 12px;
+  margin-top: 25px;
+}
 </style>
+
+
+
+  
 </head>
 <body>
-
-<h2>病人录入系统</h2>
+<h1 style="text-align: center;">创二病人分配系统</h2>
+<h2>病人录入</h2>
 
 <div>
   <input type="text" id="patientName" placeholder="病人姓名">
@@ -37,11 +223,9 @@ input { padding: 4px; margin-right: 5px; border-radius: 4px; border: 1px solid #
 </div>
 
 <h2>病人列表</h2>
-  <span id="settingsGear">⚙️</span>
+<span id="settingsGear">⚙️</span>
 
-
-<div class="switchView">
-  <span>显示模式:</span>
+<div class="switchView" style="display:inline;">
   <button id="currentBtn">当前在院</button>
   <button id="allBtn">所有病人</button>
 </div>
@@ -65,6 +249,12 @@ input { padding: 4px; margin-right: 5px; border-radius: 4px; border: 1px solid #
   </div>
 </div>
 
+<div style="text-align: center;margin:18px;">©Aoyama</div>
+
+
+
+
+  
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
@@ -117,10 +307,9 @@ function renderColumns(){
 
     const header=document.createElement("h3");
     header.innerText=doc;
-    header.addEventListener("click",()=>{
+    header.addEventListener("click",()=>{ 
       openModal("修改医生姓名",doc,newName=>{
         if(newName && newName!==doc){
-          // 修改医生名
           patients.forEach(p=>{ if(p.doctor===doc)p.doctor=newName; });
           const idx=doctors.indexOf(doc); if(idx>-1) doctors[idx]=newName;
           set(ref(db,'patients'),patients);
@@ -142,13 +331,14 @@ function renderColumns(){
       pDiv.dataset.name=p.name;
       pDiv.dataset.doctor=p.doctor;
       pDiv.dataset.row=p.row;
+
       // 点击编辑姓名
       pDiv.addEventListener("click",()=>{
         editPatient=p;
         openModal("修改病人姓名",p.name,newName=>{
           if(newName && newName!==p.name){
             p.name=newName;
-            recentPatientName=newName;
+            // 不改变 recentPatientName
             set(ref(db,'patients'),patients);
             renderColumns();
           }
@@ -178,9 +368,13 @@ document.getElementById("addPatientBtn").addEventListener("click",()=>{
   const row=colPatients.length ?? 0;
   const newPatient={name,doctor,row};
   patients.push(newPatient);
+
+  // ✅ 仅添加新病人时更新 recentPatientName
   recentPatientName=name;
 
   updateFirebase();
+  set(ref(db,'recentPatientName'), recentPatientName);
+
   document.getElementById("patientName").value="";
   document.getElementById("doctorInput").value="";
   renderColumns();
@@ -190,16 +384,23 @@ document.getElementById("addPatientBtn").addEventListener("click",()=>{
 function updateFirebase(){
   set(ref(db,'patients'),patients);
   set(ref(db,'doctorOrder'),doctors);
+  // recentPatientName 只在添加新病人时更新
 }
 
-// 实时渲染 Firebase 数据
+// 同步 patients 数据
 onValue(ref(db,'patients'),snapshot=>{
   patients=snapshot.val()||[];
   renderColumns();
 });
+// 同步医生顺序
 onValue(ref(db,'doctorOrder'),snapshot=>{
   const cloudOrder=snapshot.val();
   if(cloudOrder) doctors=cloudOrder;
+  renderColumns();
+});
+// 同步最近添加病人
+onValue(ref(db,'recentPatientName'), snapshot => {
+  recentPatientName = snapshot.val() || null;
   renderColumns();
 });
 
