@@ -203,15 +203,23 @@ div[style*="text-align: center"] {
   .container {
     grid-template-columns: 1fr;
   }
+
   .patient {
     font-size: 1rem;
     padding: 12px;
   }
+
+  /* 操作区按钮堆叠且限制宽度 */
   .operations {
     flex-direction: column;
+    align-items: center;  /* 居中 */
   }
+
   .op-cell {
-    flex: 1 1 auto;
+    flex: none;              /* 不要自动拉伸 */
+    width: 80%;              /* 最大宽度限制 */
+    max-width: 250px;        /* 防止过宽 */
+    margin: 5px 0;           /* 按钮间距 */
   }
 }
 
