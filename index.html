@@ -5,10 +5,10 @@
   <title>创二病人-管床医生分配系统</title>
   <style>
     body { font-family: "Segoe UI", sans-serif; margin: 20px; background-color: #f9fafb; color: #333; }
-    h2 { margin-top: 30px; color: #1f2937; border-bottom:none; padding-bottom: 5px; }
+    h2 { margin-top: 30px; color: #1f2937; padding-bottom: 5px; border-bottom: none; } /* 去掉下划线 */
     table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
     th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: center; min-width: 80px; font-size: 14px; }
-    th { background-color: #3b82f6; color: white; font-weight: 600; }
+    th { background-color: #3b82f6; color: white; font-weight: 600; cursor: move; }
     tr:nth-child(even) td { background-color: #f3f4f6; }
     tr:hover td { background-color: #e0f2fe; }
     .discharged { color: #9ca3af; text-decoration: line-through; }
@@ -19,10 +19,13 @@
     button:hover { background-color: #2563eb; }
     .controls { margin-top: 10px; display: flex; gap: 15px; align-items: center; font-size: 14px; }
     .controls input[type="radio"] { margin-right: 5px; }
+    /* 病人列表标题和提示 */
+    .patient-title { margin-top: 25px; }
+    .patient-title span { color: #555; font-weight: normal; margin-left: 10px; }
   </style>
 </head>
 <body>
-  <h2 style="text-align: center;font-size: 3em;">创二病人-管床分配系统</h2>
+  <h2>创二病人-管床分配系统</h2>
 
   <!-- 入院操作 -->
   <div style="margin-top:15px;">
@@ -33,7 +36,10 @@
   </div>
 
   <!-- 汇总表 -->
-  <h2>汇总表</h2>
+  <div class="patient-title">
+    <h2 style="display: inline; margin:0;">汇总表</h2>
+    <span>(拖动顺序为收治顺序)</span>
+  </div>
   <div class="controls">
     <label><input type="radio" name="viewMode" value="current" checked onchange="renderSummary()"> 当前在院</label>
     <label><input type="radio" name="viewMode" value="all" onchange="renderSummary()"> 所有病人</label>
@@ -41,25 +47,12 @@
   <table id="summaryTable"></table>
 
   <!-- 病人列表 -->
-<div style="margin-top: 20px;">
-  <h2 style="display: inline; margin-right: 10px; margin-top:0;">病人列表</h2>
-  <span style="color: #555; font-weight: normal;">(拖动顺序为收治顺序)</span>
-</div>
+  <div class="patient-title">
+    <h2 style="display: inline; margin:0;">病人列表</h2>
+    <span>(拖动顺序为收治顺序)</span>
+  </div>
+  <table id="patientTable"></table>
 
-
-  <table id="patientTable">
-    <tr><th>姓名</th><th>分配管床医生</th><th>操作</th></tr>
-  </table>
-
-
-<div style="text-align: center;margin: 6px;margin-top: 16px;">©创二Aoyama</div>
-
-
-
-
-
-
-  
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
@@ -77,15 +70,24 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const patientsRef = ref(db, 'patients');
+    const doctorOrderRef = ref(db, 'doctorOrder');
 
     let patients = [];
+    let doctorOrder = [];
 
-    // 监听数据库变化
+    // 监听病人数据
     onValue(patientsRef, snap => {
       patients = snap.val() || [];
+      initDoctorOrder();
       renderPatients();
       renderSummary();
       renderDoctorDatalist();
+    });
+
+    // 监听医生顺序
+    onValue(doctorOrderRef, snap => {
+      doctorOrder = snap.val() || [];
+      renderSummary();
     });
 
     // 入院
@@ -93,10 +95,8 @@
       const name = document.getElementById("patientName").value.trim();
       let doctor = document.getElementById("doctorName").value.trim();
       if (!name || !doctor) return;
-
       patients.push({ name, doctor, discharged: false, timestamp: Date.now() });
       set(patientsRef, patients);
-
       document.getElementById("patientName").value = "";
       document.getElementById("doctorName").value = "";
     }
@@ -115,7 +115,7 @@
       }
     }
 
-    // 重新分配医生（可输入）
+    // 更新医生
     function reassignDoctor(index) {
       const input = document.getElementById(`reassignInput-${index}`);
       const newDoctor = input.value.trim();
@@ -132,6 +132,19 @@
       set(patientsRef, patients);
     }
 
+    // 初始化医生顺序
+    function initDoctorOrder() {
+      const uniqueDoctors = Array.from(new Set(patients.map(p => p.doctor)));
+      if (!doctorOrder.length) {
+        doctorOrder = uniqueDoctors;
+        set(doctorOrderRef, doctorOrder);
+      } else {
+        // 补充新医生
+        uniqueDoctors.forEach(doc => { if (!doctorOrder.includes(doc)) doctorOrder.push(doc); });
+        set(doctorOrderRef, doctorOrder);
+      }
+    }
+
     // 渲染病人列表
     function renderPatients() {
       const table = document.getElementById("patientTable");
@@ -141,7 +154,6 @@
         const row = document.createElement("tr");
         row.draggable = true;
         row.dataset.index = i;
-
         row.innerHTML = `
           <td class="${p.discharged ? 'discharged' : ''}">
             <input type="text" value="${p.name}" ${p.discharged ? 'disabled' : ''} 
@@ -158,27 +170,23 @@
         table.appendChild(row);
       });
 
-      addDragAndDrop();
+      addPatientDragAndDrop();
     }
 
-    // 拖拽排序
-    function addDragAndDrop() {
+    // 拖拽病人列表
+    function addPatientDragAndDrop() {
       let draggedIndex = null;
-
       const rows = document.querySelectorAll("#patientTable tr:not(:first-child)");
       rows.forEach(row => {
         row.addEventListener("dragstart", e => {
           draggedIndex = parseInt(row.dataset.index);
           e.dataTransfer.effectAllowed = "move";
         });
-
         row.addEventListener("dragover", e => e.preventDefault());
-
         row.addEventListener("drop", e => {
           e.preventDefault();
           const targetIndex = parseInt(row.dataset.index);
           if (draggedIndex === null || draggedIndex === targetIndex) return;
-
           const movedItem = patients.splice(draggedIndex, 1)[0];
           patients.splice(targetIndex, 0, movedItem);
           set(patientsRef, patients);
@@ -187,32 +195,30 @@
       });
     }
 
-    // 渲染汇总表格
+    // 渲染汇总表
     function renderSummary() {
       const table = document.getElementById("summaryTable");
       table.innerHTML = "";
-      if (patients.length === 0) return;
+      if (!patients.length) return;
 
       const viewMode = document.querySelector('input[name="viewMode"]:checked').value;
-      const doctorSet = new Set(patients.map(p => p.doctor));
-      const doctors = Array.from(doctorSet);
+      const doctors = doctorOrder.slice(); // 使用保存顺序
 
       const doctorPatients = doctors.map(doc =>
         patients.filter(p => p.doctor === doc).map(p => {
-          if (viewMode === "current") {
-            return !p.discharged ? p.name : null;
-          } else {
-            return p.discharged ? `${p.name}(已出院)` : p.name;
-          }
+          if (viewMode === "current") return !p.discharged ? p.name : null;
+          else return p.discharged ? `${p.name}(已出院)` : p.name;
         }).filter(Boolean)
       );
 
       const maxLen = Math.max(...doctorPatients.map(arr => arr.length), 0);
 
       const header = document.createElement("tr");
-      doctors.forEach(doc => {
+      doctors.forEach((doc, d) => {
         const th = document.createElement("th");
         th.textContent = doc;
+        th.draggable = true;
+        th.dataset.index = d;
         header.appendChild(th);
       });
       table.appendChild(header);
@@ -227,9 +233,33 @@
         });
         table.appendChild(row);
       }
+
+      addDoctorDragAndDrop();
     }
 
-    // 渲染 datalist
+    // 拖拽医生列
+    function addDoctorDragAndDrop() {
+      let draggedIndex = null;
+      const ths = document.querySelectorAll("#summaryTable th");
+      ths.forEach(th => {
+        th.addEventListener("dragstart", e => {
+          draggedIndex = parseInt(th.dataset.index);
+          e.dataTransfer.effectAllowed = "move";
+        });
+        th.addEventListener("dragover", e => e.preventDefault());
+        th.addEventListener("drop", e => {
+          e.preventDefault();
+          const targetIndex = parseInt(th.dataset.index);
+          if (draggedIndex === null || draggedIndex === targetIndex) return;
+          const movedDoctor = doctorOrder.splice(draggedIndex, 1)[0];
+          doctorOrder.splice(targetIndex, 0, movedDoctor);
+          set(doctorOrderRef, doctorOrder);
+          draggedIndex = null;
+        });
+      });
+    }
+
+    // 渲染医生 datalist
     function renderDoctorDatalist() {
       const datalist = document.getElementById("doctorListDatalist");
       datalist.innerHTML = "";
@@ -241,13 +271,13 @@
       });
     }
 
-    // 挂载函数
+    // 挂载全局函数
     window.admitPatient = admitPatient;
     window.dischargePatient = dischargePatient;
     window.deletePatient = deletePatient;
     window.reassignDoctor = reassignDoctor;
-    window.renderSummary = renderSummary;
     window.updatePatientName = updatePatientName;
+    window.renderSummary = renderSummary;
   </script>
 </body>
 </html>
