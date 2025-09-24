@@ -4,131 +4,29 @@
   <meta charset="UTF-8">
   <title>创二病人-管床医生分配系统</title>
   <style>
-    body { font-family: "Segoe UI", sans-serif; margin: 20px; }
-    h2 { margin-top: 30px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; min-width: 80px; }
-    .discharged { color: #999; text-decoration: line-through; }
-    .placeholder { color: #ccc; }
-    select, input { padding: 3px; }
-    button { margin: 2px; }
-    .controls { margin-top: 10px; }
-
-
-    body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  margin: 20px;
-  background-color: #f9fafb;
-  color: #333;
-}
-
-h2 {
-  margin-top: 30px;
-  color: #1f2937;
-  border-bottom: 2px solid #3b82f6;
-  padding-bottom: 5px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-  background-color: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-th, td {
-  border: 1px solid #e5e7eb;
-  padding: 10px;
-  text-align: center;
-  min-width: 80px;
-  font-size: 14px;
-}
-
-th {
-  background-color: #3b82f6;
-  color: white;
-  font-weight: 600;
-}
-
-tr:nth-child(even) td {
-  background-color: #f3f4f6;
-}
-
-tr:hover td {
-  background-color: #e0f2fe;
-}
-
-.discharged {
-  color: #9ca3af;
-  text-decoration: line-through;
-}
-
-.placeholder {
-  color: #d1d5db;
-}
-
-input[type="text"], input[list], select {
-  padding: 6px 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  outline: none;
-  font-size: 14px;
-  width: 180px;
-  transition: 0.2s;
-}
-
-input[type="text"]:focus, input[list]:focus, select:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
-}
-
-button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  background-color: #3b82f6;
-  color: white;
-  cursor: pointer;
-  font-size: 14px;
-  transition: 0.2s;
-}
-
-button:hover {
-  background-color: #2563eb;
-}
-
-.controls {
-  margin-top: 10px;
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  font-size: 14px;
-}
-
-.controls input[type="radio"] {
-  margin-right: 5px;
-}
-
+    body { font-family: "Segoe UI", sans-serif; margin: 20px; background-color: #f9fafb; color: #333; }
+    h2 { margin-top: 30px; color: #1f2937; border-bottom:none; padding-bottom: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+    th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: center; min-width: 80px; font-size: 14px; }
+    th { background-color: #3b82f6; color: white; font-weight: 600; }
+    tr:nth-child(even) td { background-color: #f3f4f6; }
+    tr:hover td { background-color: #e0f2fe; }
+    .discharged { color: #9ca3af; text-decoration: line-through; }
+    .placeholder { color: #d1d5db; }
+    input[type="text"], input[list], select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 14px; width: 180px; transition: 0.2s; }
+    input[type="text"]:focus, input[list]:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+    button { padding: 6px 12px; border: none; border-radius: 6px; background-color: #3b82f6; color: white; cursor: pointer; font-size: 14px; transition: 0.2s; margin:2px; }
+    button:hover { background-color: #2563eb; }
+    .controls { margin-top: 10px; display: flex; gap: 15px; align-items: center; font-size: 14px; }
+    .controls input[type="radio"] { margin-right: 5px; }
   </style>
 </head>
-
-
-
-
-
-
-
-
-  
 <body>
-  <h2>创二病人-管床分配系统</h2>
+  <h2 style="text-align: center;font-size: 3em;">创二病人-管床分配系统</h2>
 
   <!-- 入院操作 -->
   <div style="margin-top:15px;">
-    <input type="text" id="patientName" placeholder="输入病人床号姓名">
+    <input type="text" id="patientName" placeholder="输入病人姓名">
     <input list="doctorListDatalist" id="doctorName" placeholder="选择或输入管床医生姓名">
     <datalist id="doctorListDatalist"></datalist>
     <button onclick="admitPatient()">入院</button>
@@ -143,11 +41,25 @@ button:hover {
   <table id="summaryTable"></table>
 
   <!-- 病人列表 -->
-  <h2>病人列表</h2>
+<div style="margin-top: 20px;">
+  <h2 style="display: inline; margin-right: 10px; margin-top:0;">病人列表</h2>
+  <span style="color: #555; font-weight: normal;">(拖动顺序为收治顺序)</span>
+</div>
+
+
   <table id="patientTable">
     <tr><th>姓名</th><th>分配管床医生</th><th>操作</th></tr>
   </table>
 
+
+<div style="text-align: center;margin: 6px;margin-top: 16px;">©创二Aoyama</div>
+
+
+
+
+
+
+  
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
@@ -213,6 +125,13 @@ button:hover {
       }
     }
 
+    // 更新姓名
+    function updatePatientName(index, newName) {
+      if (!newName.trim()) return;
+      patients[index].name = newName.trim();
+      set(patientsRef, patients);
+    }
+
     // 渲染病人列表
     function renderPatients() {
       const table = document.getElementById("patientTable");
@@ -220,8 +139,14 @@ button:hover {
 
       patients.forEach((p, i) => {
         const row = document.createElement("tr");
+        row.draggable = true;
+        row.dataset.index = i;
+
         row.innerHTML = `
-          <td class="${p.discharged ? 'discharged' : ''}">${p.name}</td>
+          <td class="${p.discharged ? 'discharged' : ''}">
+            <input type="text" value="${p.name}" ${p.discharged ? 'disabled' : ''} 
+                   onblur="updatePatientName(${i}, this.value)">
+          </td>
           <td>
             <input list="doctorListDatalist" id="reassignInput-${i}" value="${p.doctor}" ${p.discharged ? 'disabled' : ''} onblur="reassignDoctor(${i})">
           </td>
@@ -232,6 +157,34 @@ button:hover {
         `;
         table.appendChild(row);
       });
+
+      addDragAndDrop();
+    }
+
+    // 拖拽排序
+    function addDragAndDrop() {
+      let draggedIndex = null;
+
+      const rows = document.querySelectorAll("#patientTable tr:not(:first-child)");
+      rows.forEach(row => {
+        row.addEventListener("dragstart", e => {
+          draggedIndex = parseInt(row.dataset.index);
+          e.dataTransfer.effectAllowed = "move";
+        });
+
+        row.addEventListener("dragover", e => e.preventDefault());
+
+        row.addEventListener("drop", e => {
+          e.preventDefault();
+          const targetIndex = parseInt(row.dataset.index);
+          if (draggedIndex === null || draggedIndex === targetIndex) return;
+
+          const movedItem = patients.splice(draggedIndex, 1)[0];
+          patients.splice(targetIndex, 0, movedItem);
+          set(patientsRef, patients);
+          draggedIndex = null;
+        });
+      });
     }
 
     // 渲染汇总表格
@@ -241,7 +194,6 @@ button:hover {
       if (patients.length === 0) return;
 
       const viewMode = document.querySelector('input[name="viewMode"]:checked').value;
-
       const doctorSet = new Set(patients.map(p => p.doctor));
       const doctors = Array.from(doctorSet);
 
@@ -289,12 +241,13 @@ button:hover {
       });
     }
 
-    // 将函数挂到 window，让 HTML 事件可以调用
+    // 挂载函数
     window.admitPatient = admitPatient;
     window.dischargePatient = dischargePatient;
     window.deletePatient = deletePatient;
     window.reassignDoctor = reassignDoctor;
     window.renderSummary = renderSummary;
+    window.updatePatientName = updatePatientName;
   </script>
 </body>
 </html>
