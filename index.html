@@ -5,10 +5,10 @@
   <title>创二病人-管床医生分配系统</title>
   <style>
     body { font-family: "Segoe UI", sans-serif; margin: 20px; background-color: #f9fafb; color: #333; }
-    h2 { margin-top: 30px; color: #1f2937; padding-bottom: 5px; border-bottom: none; } /* 去掉下划线 */
+    h2 { margin-top: 30px; color: #1f2937; padding-bottom: 5px; border-bottom: none; }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
     th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: center; min-width: 80px; font-size: 14px; }
-    th { background-color: #3b82f6; color: white; font-weight: 600; cursor: move; }
+    th { background-color: #3b82f6; color: white; font-weight: 600; }
     tr:nth-child(even) td { background-color: #f3f4f6; }
     tr:hover td { background-color: #e0f2fe; }
     .discharged { color: #9ca3af; text-decoration: line-through; }
@@ -19,9 +19,10 @@
     button:hover { background-color: #2563eb; }
     .controls { margin-top: 10px; display: flex; gap: 15px; align-items: center; font-size: 14px; }
     .controls input[type="radio"] { margin-right: 5px; }
-    /* 病人列表标题和提示 */
     .patient-title { margin-top: 25px; }
     .patient-title span { color: #555; font-weight: normal; margin-left: 10px; }
+    .custom-order { margin-top:10px; display:flex; align-items:center; gap:10px; }
+    .custom-order input { flex:1; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; }
   </style>
 </head>
 <body>
@@ -38,8 +39,15 @@
   <!-- 汇总表 -->
   <div class="patient-title">
     <h2 style="display: inline; margin:0;">汇总表</h2>
-    <span>(拖动顺序为收治顺序)</span>
+    <span>(手动设置顺序)</span>
   </div>
+
+  <!-- 自定义医生顺序输入框 -->
+  <div class="custom-order">
+    <input type="text" id="customDoctorOrder" placeholder="输入医生顺序，用 - 分割">
+    <button onclick="setCustomDoctorOrder()">设置顺序</button>
+  </div>
+
   <div class="controls">
     <label><input type="radio" name="viewMode" value="current" checked onchange="renderSummary()"> 当前在院</label>
     <label><input type="radio" name="viewMode" value="all" onchange="renderSummary()"> 所有病人</label>
@@ -74,23 +82,27 @@
 
     let patients = [];
     let doctorOrder = [];
+    let doctorOrderLoaded = false;
+
+    // 监听医生顺序
+    onValue(doctorOrderRef, snap => {
+      const cloudOrder = snap.val();
+      if (cloudOrder && cloudOrder.length) {
+        doctorOrder = cloudOrder;
+        doctorOrderLoaded = true;
+        renderSummary();
+      }
+    });
 
     // 监听病人数据
     onValue(patientsRef, snap => {
       patients = snap.val() || [];
-      initDoctorOrder();
+      initDoctorOrder(); // 补充新医生
       renderPatients();
       renderSummary();
       renderDoctorDatalist();
     });
 
-    // 监听医生顺序
-    onValue(doctorOrderRef, snap => {
-      doctorOrder = snap.val() || [];
-      renderSummary();
-    });
-
-    // 入院
     function admitPatient() {
       const name = document.getElementById("patientName").value.trim();
       let doctor = document.getElementById("doctorName").value.trim();
@@ -101,13 +113,11 @@
       document.getElementById("doctorName").value = "";
     }
 
-    // 出院
     function dischargePatient(index) {
       patients[index].discharged = true;
       set(patientsRef, patients);
     }
 
-    // 删除
     function deletePatient(index) {
       if (confirm(`确认删除病人：${patients[index].name}？`)) {
         patients.splice(index, 1);
@@ -115,44 +125,56 @@
       }
     }
 
-    // 更新医生
     function reassignDoctor(index) {
       const input = document.getElementById(`reassignInput-${index}`);
       const newDoctor = input.value.trim();
       if (newDoctor) {
         patients[index].doctor = newDoctor;
         set(patientsRef, patients);
+        if (!doctorOrder.includes(newDoctor)) {
+          doctorOrder.push(newDoctor);
+          set(doctorOrderRef, doctorOrder);
+        }
       }
     }
 
-    // 更新姓名
     function updatePatientName(index, newName) {
       if (!newName.trim()) return;
       patients[index].name = newName.trim();
       set(patientsRef, patients);
     }
 
-    // 初始化医生顺序
     function initDoctorOrder() {
       const uniqueDoctors = Array.from(new Set(patients.map(p => p.doctor)));
-      if (!doctorOrder.length) {
-        doctorOrder = uniqueDoctors;
-        set(doctorOrderRef, doctorOrder);
-      } else {
-        // 补充新医生
+      if (doctorOrderLoaded) {
+        // 云端顺序已加载，补充新医生
         uniqueDoctors.forEach(doc => { if (!doctorOrder.includes(doc)) doctorOrder.push(doc); });
         set(doctorOrderRef, doctorOrder);
+      } else {
+        // 云端没有顺序，初始化默认顺序
+        doctorOrder = uniqueDoctors;
+        set(doctorOrderRef, doctorOrder);
+        doctorOrderLoaded = true;
       }
     }
 
-    // 渲染病人列表
+    function setCustomDoctorOrder() {
+      const input = document.getElementById("customDoctorOrder").value.trim();
+      if (!input) return;
+      const newOrder = input.split("-").map(s => s.trim()).filter(Boolean);
+      const allDoctors = Array.from(new Set(patients.map(p => p.doctor)));
+      const finalOrder = newOrder.concat(allDoctors.filter(d => !newOrder.includes(d)));
+      doctorOrder = finalOrder;
+      set(doctorOrderRef, doctorOrder);
+      renderSummary();
+    }
+
     function renderPatients() {
       const table = document.getElementById("patientTable");
       table.innerHTML = "<tr><th>姓名</th><th>管床医生</th><th>操作</th></tr>";
 
       patients.forEach((p, i) => {
         const row = document.createElement("tr");
-        row.draggable = true;
         row.dataset.index = i;
         row.innerHTML = `
           <td class="${p.discharged ? 'discharged' : ''}">
@@ -163,7 +185,7 @@
             <input list="doctorListDatalist" id="reassignInput-${i}" value="${p.doctor}" ${p.discharged ? 'disabled' : ''} onblur="reassignDoctor(${i})">
           </td>
           <td>
-            ${!p.discharged ? `<button onclick="dischargePatient(${i})">出院</button>` : ''}
+            ${!p.discharged ? `<button onclick="dischargePatient(${i})">出院</button>` : ''} 
             <button onclick="deletePatient(${i})">删除</button>
           </td>
         `;
@@ -173,11 +195,11 @@
       addPatientDragAndDrop();
     }
 
-    // 拖拽病人列表
     function addPatientDragAndDrop() {
       let draggedIndex = null;
       const rows = document.querySelectorAll("#patientTable tr:not(:first-child)");
       rows.forEach(row => {
+        row.draggable = true;
         row.addEventListener("dragstart", e => {
           draggedIndex = parseInt(row.dataset.index);
           e.dataTransfer.effectAllowed = "move";
@@ -195,14 +217,15 @@
       });
     }
 
-    // 渲染汇总表
     function renderSummary() {
       const table = document.getElementById("summaryTable");
       table.innerHTML = "";
       if (!patients.length) return;
 
       const viewMode = document.querySelector('input[name="viewMode"]:checked').value;
-      const doctors = doctorOrder.slice(); // 使用保存顺序
+      const doctorsFromPatients = Array.from(new Set(patients.map(p => p.doctor)));
+      doctorsFromPatients.forEach(doc => { if (!doctorOrder.includes(doc)) doctorOrder.push(doc); });
+      const doctors = doctorOrder.slice();
 
       const doctorPatients = doctors.map(doc =>
         patients.filter(p => p.doctor === doc).map(p => {
@@ -214,11 +237,9 @@
       const maxLen = Math.max(...doctorPatients.map(arr => arr.length), 0);
 
       const header = document.createElement("tr");
-      doctors.forEach((doc, d) => {
+      doctors.forEach(doc => {
         const th = document.createElement("th");
         th.textContent = doc;
-        th.draggable = true;
-        th.dataset.index = d;
         header.appendChild(th);
       });
       table.appendChild(header);
@@ -233,33 +254,8 @@
         });
         table.appendChild(row);
       }
-
-      addDoctorDragAndDrop();
     }
 
-    // 拖拽医生列
-    function addDoctorDragAndDrop() {
-      let draggedIndex = null;
-      const ths = document.querySelectorAll("#summaryTable th");
-      ths.forEach(th => {
-        th.addEventListener("dragstart", e => {
-          draggedIndex = parseInt(th.dataset.index);
-          e.dataTransfer.effectAllowed = "move";
-        });
-        th.addEventListener("dragover", e => e.preventDefault());
-        th.addEventListener("drop", e => {
-          e.preventDefault();
-          const targetIndex = parseInt(th.dataset.index);
-          if (draggedIndex === null || draggedIndex === targetIndex) return;
-          const movedDoctor = doctorOrder.splice(draggedIndex, 1)[0];
-          doctorOrder.splice(targetIndex, 0, movedDoctor);
-          set(doctorOrderRef, doctorOrder);
-          draggedIndex = null;
-        });
-      });
-    }
-
-    // 渲染医生 datalist
     function renderDoctorDatalist() {
       const datalist = document.getElementById("doctorListDatalist");
       datalist.innerHTML = "";
@@ -271,13 +267,13 @@
       });
     }
 
-    // 挂载全局函数
     window.admitPatient = admitPatient;
     window.dischargePatient = dischargePatient;
     window.deletePatient = deletePatient;
     window.reassignDoctor = reassignDoctor;
     window.updatePatientName = updatePatientName;
     window.renderSummary = renderSummary;
+    window.setCustomDoctorOrder = setCustomDoctorOrder;
   </script>
 </body>
 </html>
