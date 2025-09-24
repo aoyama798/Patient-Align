@@ -4,239 +4,118 @@
 <meta charset="UTF-8">
 <title>病人管理系统</title>
 <style>
-/* 页面整体 */
-body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: #f4f6f8;
-  margin: 0;
-  padding: 15px;
-  color: #333;
-}
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fa;
+    margin: 0;
+    padding: 20px;
+    font-size: 18px; /* 全局字体更大 */
+    line-height: 1.6;
+  }
 
-/* 标题 */
-h1 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 10px;
-  font-size: 1.6rem;
-}
+  h2 {
+    text-align: center;
+    color: #333;
+    font-size: 28px; /* 标题更大 */
+    margin-bottom: 20px;
+  }
 
-h2 {
-  color: #34495e;
-  margin-top: 20px;
-  margin-bottom: 10px;
-  display: inline-block;
-  font-size: 1.2rem;
-}
-
-#settingsGear {
-  cursor: pointer;
-  font-size: 22px;
-  margin-left: 8px;
-  vertical-align: middle;
-}
-
-/* 输入区域 */
-div input[type="text"], div input[list] {
-  padding: 8px 10px;
-  margin-bottom: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  outline: none;
-  font-size: 14px;
-  width: 100%;
-  max-width: 200px;
-}
-
-div input:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 5px rgba(52,152,219,0.4);
-}
-
-/* 按钮 */
-button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  background-color: #3498db;
-  color: white;
-  transition: background-color 0.2s;
-}
-
-button:hover {
-  background-color: #2980b9;
-}
-
-/* 切换视图按钮 */
-.switchView {
-  margin-top: 10px;
-}
-
-.switchView button {
-  background-color: #ecf0f1;
-  color: #2c3e50;
-}
-
-.switchView button:hover {
-  background-color: #bdc3c7;
-}
-
-/* 容器布局 */
-.container {
-  display: grid;
-  gap: 15px;
-  margin-top: 15px;
-}
-
-/* 医生列 */
-.column-container {
-  background: #ffffff;
-  padding: 12px;
-  border-radius: 10px;
-  min-width: 160px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.column-container h3 {
-  text-align: center;
-  margin-bottom: 10px;
-  cursor: pointer;
-  color: #2c3e50;
-  font-size: 1rem;
-}
-
-/* 病人卡片 */
-.patient {
-  background: #d0eaff;
-  margin: 6px 0;
-  padding: 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
-  user-select: none;
-  font-size: 0.95rem;
-}
-
-.patient:hover {
-  background-color: #a9d6ff;
-}
-
-.patient.recent {
-  background-color: #b6f1b0 !important;
-}
-
-/* 操作区 */
-.operations {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.op-cell {
-  background: #ffdede;
-  padding: 12px;
-  border-radius: 8px;
-  flex: 1 1 100px;
-  text-align: center;
-  font-weight: bold;
-  cursor: grab;
-  transition: background-color 0.2s;
-}
-
-.op-cell:hover {
-  background-color: #ffbaba;
-}
-
-/* 模态框 */
-.modal-bg {
-  position: fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-.modal {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  min-width: 280px;
-  max-width: 90%;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.modal input {
-  width: 100%;
-  padding: 8px 10px;
-  margin-bottom: 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-.modal button {
-  width: 48%;
-  margin-right: 4%;
-}
-
-.modal button:last-child {
-  margin-right: 0;
-  background-color: #95a5a6;
-}
-
-/* 页脚 */
-div[style*="text-align: center"] {
-  color: #95a5a6;
-  font-size: 12px;
-  margin-top: 25px;
-}
-
-/* ===== 响应式布局 ===== */
-
-/* 手机（小屏 < 600px）：一列布局 */
-@media (max-width: 600px) {
   .container {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
   }
 
   .patient {
-    font-size: 1rem;
-    padding: 12px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
-  /* 操作区按钮堆叠且限制宽度 */
+  .patient strong {
+    font-size: 20px; /* 姓名加大 */
+    color: #222;
+  }
+
+  .info {
+    color: #555;
+    font-size: 16px;
+  }
+
   .operations {
-    flex-direction: column;
-    align-items: center;  /* 居中 */
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
   }
 
   .op-cell {
-    flex: none;              /* 不要自动拉伸 */
-    width: 80%;              /* 最大宽度限制 */
-    max-width: 250px;        /* 防止过宽 */
-    margin: 5px 0;           /* 按钮间距 */
+    flex: 1;
+    padding: 12px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
   }
-}
 
-/* 平板（中屏 600-900px）：两列布局 */
-@media (min-width: 600px) and (max-width: 900px) {
-  .container {
-    grid-template-columns: repeat(2, 1fr);
+  .discharge {
+    background-color: #4caf50;
+    color: white;
   }
-}
 
-/* 电脑（大屏 > 900px）：多列自适应 */
-@media (min-width: 900px) {
-  .container {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  .discharge:hover {
+    background-color: #45a049;
   }
-}
+
+  .delete {
+    background-color: #f44336;
+    color: white;
+  }
+
+  .delete:hover {
+    background-color: #d32f2f;
+  }
+
+  /* 手机（小屏 < 600px）：一列布局 */
+  @media (max-width: 600px) {
+    body {
+      font-size: 20px; /* 手机字体更大 */
+      padding: 15px;
+    }
+
+    h2 {
+      font-size: 24px;
+    }
+
+    .patient {
+      font-size: 18px;
+      padding: 15px;
+    }
+
+    .patient strong {
+      font-size: 22px;
+    }
+
+    .operations {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .op-cell {
+      flex: none;
+      width: 85%;       /* 按钮宽度更适合手机 */
+      max-width: 300px; /* 限制不会超屏 */
+      margin: 6px 0;
+      font-size: 18px;
+    }
+  }
 </style>
+
 
 
 
