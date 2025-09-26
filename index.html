@@ -33,7 +33,7 @@ h2 {
 #settingsGear {
   cursor: pointer;
   font-size: 2rem;
-    margin-bottom: : 0.5rem;
+  margin-bottom: 0.5rem;
   vertical-align: middle;
 }
 
@@ -129,6 +129,13 @@ button:hover {
   background-color: #b6f1b0 !important;
 }
 
+/* 拖拽样式 */
+.patient-drag {
+  opacity: 0.6;
+  transform: scale(1.05);
+  border: 0.2rem dashed #3498db;
+}
+
 /* 操作区 */
 .operations {
   display: flex;
@@ -203,46 +210,22 @@ div[style*="text-align: center"] {
 }
 
 /* ===== 响应式布局 ===== */
-
-/* 手机（小屏 < 600px）：一列布局 */
 @media (max-width: 600px) {
-  .container {
-    grid-template-columns: 1fr;
-  }
-  .patient {
-    font-size: 2rem;
-    padding: 1.2rem;
-  }
-  .operations {
-    flex-direction: column;
-  }
-  .op-cell {
-    flex: 1 1 auto;
-  }
+  .container { grid-template-columns: 1fr; }
+  .patient { font-size: 2rem; padding: 1.2rem; }
+  .operations { flex-direction: column; }
+  .op-cell { flex: 1 1 auto; }
 }
-
-/* 平板（中屏 600-900px）：两列布局 */
 @media (min-width: 600px) and (max-width: 900px) {
-  .container {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .container { grid-template-columns: repeat(2, 1fr); }
 }
-
-/* 电脑（大屏 > 900px）：多列自适应 */
 @media (min-width: 900px) {
-  .container {
-    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
-  }
+  .container { grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr)); }
 }
 </style>
-
-
-
-
-  
 </head>
 <body>
-<h1 style="text-align: center;">创二病人分配系统</h2>
+<h1>创二病人分配系统</h1>
 <h2>病人录入</h2>
 
 <div>
@@ -259,9 +242,9 @@ div[style*="text-align: center"] {
   <button id="currentBtn">当前在院</button>
   <button id="allBtn">所有病人</button>
 </div>
-  
+
 <div class="container" id="columnsContainer"></div>
-  
+
 <div class="operations">
   <div class="op-cell" id="dischargeCell">出院</div>
   <div class="op-cell" id="deleteCell">删除</div>
@@ -278,14 +261,11 @@ div[style*="text-align: center"] {
     </div>
   </div>
 </div>
-  
+
 <a href="https://aoyama798.github.io/web/">
 <div style="text-align: center;margin:18px;">©Aoyama</div>
 </a>
 
-
-
-  
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
@@ -305,7 +285,7 @@ const db = getDatabase(app);
 let patients=[], doctors=[], recentPatientName=null, showAll=false;
 let editPatient=null;
 
-// 模态框操作
+// 模态框
 const modalBg=document.getElementById("modalBg");
 const modalInput=document.getElementById("modalInput");
 const modalLabel=document.getElementById("modalLabel");
@@ -323,11 +303,17 @@ function openModal(label,text,callback){
   function closeModal(){ modalBg.style.display="none"; modalConfirm.onclick=null; modalCancel.onclick=null; }
 }
 
+// 更新医生列表
+function updateDoctorList(){
+  const list=document.getElementById("doctorList");
+  list.innerHTML=doctors.map(d=>`<option value="${d}">`).join("");
+}
+
 // 渲染医生列
 function renderColumns(){
-  let displayPatients=showAll ? patients : patients.filter(p=>!p.discharge);
+  const displayPatients=showAll ? patients : patients.filter(p=>!p.discharge);
   doctors=doctors.filter(doc=>displayPatients.some(p=>p.doctor===doc));
-  displayPatients.forEach(p=>{ if(p.row===undefined || p.row===null)p.row=0; });
+  displayPatients.forEach(p=>{ if(p.row===undefined)p.row=0; });
 
   const container=document.getElementById("columnsContainer");
   container.innerHTML="";
@@ -352,13 +338,12 @@ function renderColumns(){
     colDiv.appendChild(header);
 
     displayPatients.filter(p=>p.doctor===doc).sort((a,b)=>a.row-b.row)
-    .forEach((p,index)=>{
+      .forEach((p,index)=>{
       p.row=index;
       const pDiv=document.createElement("div");
       pDiv.className="patient";
       if(p.name===recentPatientName)pDiv.classList.add("recent");
       if(showAll && p.discharge)pDiv.innerText=p.name+" (已出院)"; else pDiv.innerText=p.name;
-      pDiv.draggable=true;
       pDiv.dataset.name=p.name;
       pDiv.dataset.doctor=p.doctor;
       pDiv.dataset.row=p.row;
@@ -369,7 +354,6 @@ function renderColumns(){
         openModal("修改病人姓名",p.name,newName=>{
           if(newName && newName!==p.name){
             p.name=newName;
-            // 不改变 recentPatientName
             set(ref(db,'patients'),patients);
             renderColumns();
           }
@@ -380,12 +364,7 @@ function renderColumns(){
     container.appendChild(colDiv);
   });
   updateDoctorList();
-}
-
-// 更新医生列表
-function updateDoctorList(){
-  const list=document.getElementById("doctorList");
-  list.innerHTML=doctors.map(d=>`<option value="${d}">`).join("");
+  initSortable(); // 初始化拖拽
 }
 
 // 添加病人
@@ -400,7 +379,6 @@ document.getElementById("addPatientBtn").addEventListener("click",()=>{
   const newPatient={name,doctor,row};
   patients.push(newPatient);
 
-  // ✅ 仅添加新病人时更新 recentPatientName
   recentPatientName=name;
 
   updateFirebase();
@@ -415,21 +393,17 @@ document.getElementById("addPatientBtn").addEventListener("click",()=>{
 function updateFirebase(){
   set(ref(db,'patients'),patients);
   set(ref(db,'doctorOrder'),doctors);
-  // recentPatientName 只在添加新病人时更新
 }
 
-// 同步 patients 数据
 onValue(ref(db,'patients'),snapshot=>{
   patients=snapshot.val()||[];
   renderColumns();
 });
-// 同步医生顺序
 onValue(ref(db,'doctorOrder'),snapshot=>{
   const cloudOrder=snapshot.val();
   if(cloudOrder) doctors=cloudOrder;
   renderColumns();
 });
-// 同步最近添加病人
 onValue(ref(db,'recentPatientName'), snapshot => {
   recentPatientName = snapshot.val() || null;
   renderColumns();
@@ -451,50 +425,51 @@ document.getElementById("settingsGear").addEventListener("click",()=>{
 document.getElementById("currentBtn").addEventListener("click",()=>{ showAll=false; renderColumns(); });
 document.getElementById("allBtn").addEventListener("click",()=>{ showAll=true; renderColumns(); });
 
-// 拖拽病人与操作
-let dragPatient=null;
-document.addEventListener("dragstart",e=>{
-  const p=e.target.closest(".patient");
-  if(p) dragPatient=p;
-});
-document.addEventListener("dragover",e=>e.preventDefault());
-document.addEventListener("drop",e=>{
-  e.preventDefault();
-  const targetCol = e.target.closest(".column-container");
-  const targetPatient = e.target.closest(".patient");
-  const opCell = e.target.closest(".op-cell");
-
-  if(dragPatient && targetCol){
-    const targetDoctor=targetCol.dataset.doctor;
-    const patientObj=patients.find(p=>p.name===dragPatient.dataset.name);
+// 出院/删除操作
+document.querySelectorAll(".op-cell").forEach(cell=>{
+  cell.addEventListener("click",()=>{
+    const selected = document.querySelector(".patient.recent") || null;
+    if(!selected) return alert("请先选择病人");
+    const patientObj=patients.find(p=>p.name===selected.dataset.name);
     if(!patientObj) return;
-
-    if(targetPatient && targetPatient!==dragPatient){
-      const targetObj=patients.find(p=>p.name===targetPatient.dataset.name);
-      if(targetObj){ const temp=patientObj.row ??0; patientObj.row=targetObj.row ??0; targetObj.row=temp; }
-    }else{
-      patientObj.doctor=targetDoctor;
-      const colPatients=patients.filter(p=>p.doctor===targetDoctor && !p.discharge);
-      patientObj.row=colPatients.length ??0;
-    }
+    if(cell.id==="deleteCell"){ patients.splice(patients.indexOf(patientObj),1); }
+    if(cell.id==="dischargeCell"){ patientObj.discharge=true; }
     updateFirebase();
-    dragPatient=null;
     renderColumns();
-    return;
-  }
-
-  if(dragPatient && opCell){
-    const patientIndex=patients.findIndex(p=>p.name===dragPatient.dataset.name);
-    if(patientIndex>-1){
-      if(opCell.id==="deleteCell"){ patients.splice(patientIndex,1); }
-      else if(opCell.id==="dischargeCell"){ patients[patientIndex].discharge=true; }
-      updateFirebase();
-      dragPatient=null;
-      renderColumns();
-    }
-  }
+  });
 });
-</script>
 
+// ===== Sortable.js 拖拽 =====
+import Sortable from "https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js";
+function initSortable(){
+  const container=document.getElementById("columnsContainer");
+  const columns=container.querySelectorAll(".column-container");
+
+  columns.forEach(col=>{
+    new Sortable(col,{
+      group: 'patients',
+      animation: 150,
+      ghostClass: 'patient-drag',
+      onEnd: function(evt){
+        const patientName=evt.item.dataset.name;
+        const patientObj=patients.find(p=>p.name===patientName);
+        if(!patientObj) return;
+
+        patientObj.doctor=evt.to.dataset.doctor;
+
+        // 更新 row 顺序
+        const colPatients=Array.from(evt.to.children)
+          .filter(c => c.classList.contains('patient'))
+          .map(c => patients.find(p=>p.name===c.dataset.name));
+        colPatients.forEach((p,index)=>p.row=index);
+
+        updateFirebase();
+        renderColumns();
+      }
+    });
+  });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </body>
 </html>
