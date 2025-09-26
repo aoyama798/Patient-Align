@@ -233,20 +233,10 @@ div[style*="text-align: center"] {
   .container {
     grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
   }
-  .patient-drag {
-  opacity: 0.6;
-  transform: scale(1.05);
-  border: 0.2rem dashed #3498db;
-  }
-}
-  .patient-drag {
-  opacity: 0.6;
-  transform: scale(1.05);
-  border: 0.2rem dashed #3498db;
 }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
 
 
   
@@ -419,7 +409,6 @@ document.getElementById("addPatientBtn").addEventListener("click",()=>{
   document.getElementById("patientName").value="";
   document.getElementById("doctorInput").value="";
   renderColumns();
-  initSortable();
 });
 
 // Firebase 同步
@@ -463,35 +452,36 @@ document.getElementById("currentBtn").addEventListener("click",()=>{ showAll=fal
 document.getElementById("allBtn").addEventListener("click",()=>{ showAll=true; renderColumns(); });
 
 // 拖拽病人与操作
-function initSortable() {
-  const container = document.getElementById("columnsContainer");
-  const columns = container.querySelectorAll(".column-container");
+let dragPatient=null;
+document.addEventListener("dragstart",e=>{
+  const p=e.target.closest(".patient");
+  if(p) dragPatient=p;
+});
+document.addEventListener("dragover",e=>e.preventDefault());
+document.addEventListener("drop",e=>{
+  e.preventDefault();
+  const targetCol = e.target.closest(".column-container");
+  const targetPatient = e.target.closest(".patient");
+  const opCell = e.target.closest(".op-cell");
 
-  columns.forEach(col => {
-    new Sortable(col, {
-      group: 'patients',        // 允许跨列拖拽
-      animation: 150,
-      ghostClass: 'patient-drag',
-      onEnd: function(evt) {
-        const patientName = evt.item.dataset.name;
-        const patientObj = patients.find(p => p.name === patientName);
-        if(!patientObj) return;
+  if(dragPatient && targetCol){
+    const targetDoctor=targetCol.dataset.doctor;
+    const patientObj=patients.find(p=>p.name===dragPatient.dataset.name);
+    if(!patientObj) return;
 
-        const newDoctor = evt.to.dataset.doctor;
-        patientObj.doctor = newDoctor;
-
-        // 更新 row 顺序
-        const colPatients = Array.from(evt.to.children)
-          .filter(c => c.classList.contains('patient'))
-          .map(c => patients.find(p=>p.name===c.dataset.name));
-        colPatients.forEach((p,index)=>p.row=index);
-
-        updateFirebase();
-        renderColumns();
-      }
-    });
-  });
-}
+    if(targetPatient && targetPatient!==dragPatient){
+      const targetObj=patients.find(p=>p.name===targetPatient.dataset.name);
+      if(targetObj){ const temp=patientObj.row ??0; patientObj.row=targetObj.row ??0; targetObj.row=temp; }
+    }else{
+      patientObj.doctor=targetDoctor;
+      const colPatients=patients.filter(p=>p.doctor===targetDoctor && !p.discharge);
+      patientObj.row=colPatients.length ??0;
+    }
+    updateFirebase();
+    dragPatient=null;
+    renderColumns();
+    return;
+  }
 
   if(dragPatient && opCell){
     const patientIndex=patients.findIndex(p=>p.name===dragPatient.dataset.name);
