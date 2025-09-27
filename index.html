@@ -308,10 +308,12 @@ if (isIOS || isWeChat) {
 
   let touchDragPatient = null;
   let dragClone = null;
+  let dragging = false; // 新增
 
   document.addEventListener("touchstart", e => {
     const p = e.target.closest(".patient");
     if (p) {
+      dragging = true; // 开始拖动时标记
       touchDragPatient = p;
       p.style.opacity = "0.5"; // 原始半透明
 
@@ -336,10 +338,17 @@ if (isIOS || isWeChat) {
       dragClone.style.left = touch.clientX + 10 + "px";
       dragClone.style.top = touch.clientY + 10 + "px";
     }
-  });
+
+    // 拖动时禁用页面滑动
+    if (dragging) {
+      e.preventDefault();
+    }
+  }, { passive: false }); // 必须设置 passive:false
 
   document.addEventListener("touchend", e => {
     if (!touchDragPatient) return;
+
+    dragging = false; // 结束拖动时恢复
 
     // 还原原卡片
     touchDragPatient.style.opacity = "1";
@@ -375,6 +384,7 @@ if (isIOS || isWeChat) {
     touchDragPatient = null;
   });
 }
+
 
 
   
