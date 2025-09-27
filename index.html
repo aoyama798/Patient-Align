@@ -294,7 +294,7 @@ div[style*="text-align: center"] {
   
 <a href="https://aoyama798.github.io/blog2/">
   
-<div style="text-align: center;margin:18px;">©Aoyama</div>
+<div style="text-align: center;margin:18px;">©Aoyama798</div>
 </a>
 
 
@@ -481,7 +481,7 @@ if(p.remark){
       pDiv.dataset.row=p.row;
 
       // 点击编辑姓名、添加备注
-pDiv.addEventListener("click", ()=>{
+pDiv.addEventListener("click", () => {
   editPatient = p;
 
   const modal = modalBg.querySelector(".modal");
@@ -490,7 +490,7 @@ pDiv.addEventListener("click", ()=>{
   // 清空模态内容
   modal.innerHTML = "";
 
-  // 姓名标签与输入框
+  // ======== 姓名 ========
   const nameLabel = document.createElement("label");
   nameLabel.innerText = "床号姓名";
   nameLabel.style.display = "block";
@@ -504,23 +504,42 @@ pDiv.addEventListener("click", ()=>{
   nameInput.style.fontSize = "2rem";
   nameInput.style.marginBottom = "1rem";
 
-  // 备注标签与输入框
+  // ======== 医生选择 ========
+  const doctorLabel = document.createElement("label");
+  doctorLabel.innerText = "医生";
+  doctorLabel.style.display = "block";
+  doctorLabel.style.marginBottom = "0.5rem";
+
+  const doctorSelect = document.createElement("select");
+  doctorSelect.style.width = "100%";
+  doctorSelect.style.padding = "0.8rem";
+  doctorSelect.style.fontSize = "2rem";
+  doctorSelect.style.marginBottom = "1rem";
+
+  doctors.forEach(doc => {
+    const option = document.createElement("option");
+    option.value = doc;
+    option.innerText = doc;
+    doctorSelect.appendChild(option);
+  });
+  doctorSelect.value = p.doctor || "";
+
+  // ======== 备注 ========
   const remarkLabel = document.createElement("label");
   remarkLabel.innerText = "备注代办";
   remarkLabel.style.display = "block";
   remarkLabel.style.marginBottom = "0.5rem";
 
-const remarkInput = document.createElement("textarea"); // 改为 textarea
-remarkInput.value = p.remark || "";
-remarkInput.style.width = "100%";
-remarkInput.style.padding = "0.8rem";
-remarkInput.style.fontSize = "2rem";
-remarkInput.style.marginBottom = "1rem";
-remarkInput.style.resize = "vertical"; // 可垂直拉伸
-remarkInput.rows = 5; // 默认三行
+  const remarkInput = document.createElement("textarea");
+  remarkInput.value = p.remark || "";
+  remarkInput.style.width = "100%";
+  remarkInput.style.padding = "0.8rem";
+  remarkInput.style.fontSize = "2rem";
+  remarkInput.style.marginBottom = "1rem";
+  remarkInput.style.resize = "vertical";
+  remarkInput.rows = 5;
 
-
-  // 按钮容器
+  // ======== 按钮 ========
   const btnContainer = document.createElement("div");
   btnContainer.style.textAlign = "right";
 
@@ -534,22 +553,30 @@ remarkInput.rows = 5; // 默认三行
   btnContainer.appendChild(confirmBtn);
   btnContainer.appendChild(cancelBtn);
 
-  // 添加到模态
+  // ======== 添加到模态 ========
   modal.appendChild(nameLabel);
   modal.appendChild(nameInput);
+  modal.appendChild(doctorLabel);
+  modal.appendChild(doctorSelect);
   modal.appendChild(remarkLabel);
   modal.appendChild(remarkInput);
   modal.appendChild(btnContainer);
 
-  // 确认操作
+  // ======== 确认按钮逻辑 ========
   confirmBtn.onclick = () => {
     const newName = nameInput.value.trim();
+    const newDoctor = doctorSelect.value.trim();
     const newRemark = remarkInput.value.trim();
 
-    if(newName) p.name = newName;
+    if (newName) p.name = newName;
+    if (newDoctor && newDoctor !== p.doctor) {
+      p.doctor = newDoctor;
+      if (!doctors.includes(newDoctor)) doctors.push(newDoctor);
+    }
     p.remark = newRemark;
 
-    set(ref(db,'patients'), patients);
+    set(ref(db, 'patients'), patients);
+    set(ref(db, 'doctorOrder'), doctors);
     renderColumns();
 
     modalBg.style.display = "none";
@@ -557,13 +584,14 @@ remarkInput.rows = 5; // 默认三行
     cancelBtn.onclick = null;
   };
 
-  // 取消操作
+  // ======== 取消按钮 ========
   cancelBtn.onclick = () => {
     modalBg.style.display = "none";
     confirmBtn.onclick = null;
     cancelBtn.onclick = null;
   };
 });
+
 
 
       
