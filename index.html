@@ -54,6 +54,9 @@ div input:focus {
   box-shadow: 0 0 0.3rem rgba(52,152,219,0.4);
 }
 
+
+
+  
 /* 按钮 */
 button {
   padding: 0.6rem 1rem;
@@ -250,7 +253,7 @@ div[style*="text-align: center"] {
 <body>
  
 <h1 style="text-align: center;">
-  <img src="https://github.com/aoyama798/Patient-Align/blob/main/logo.png?raw=true" alt="医院Logo" style="height:4rem; vertical-align:middle; margin-right:1rem;"> 创二病人分配系统</h2>
+  创二病人分配系统</h2>
 <h2>病人录入</h2>
 
 <div>
@@ -458,7 +461,20 @@ function renderColumns(){
       const pDiv=document.createElement("div");
       pDiv.className="patient";
       if(p.name===recentPatientName)pDiv.classList.add("recent");
-      if(showAll && p.discharge)pDiv.innerText=p.name+" (已出院)"; else pDiv.innerText=p.name;
+      if(showAll && p.discharge) pDiv.innerHTML = p.name + " (已出院)";
+else pDiv.innerHTML = p.name;
+
+// 添加备注显示
+if(p.remark){
+  const remarkDiv = document.createElement("div");
+  remarkDiv.style.whiteSpace = "pre-wrap"; // 保留换行
+  remarkDiv.style.marginTop = "0.5rem";
+  remarkDiv.style.fontSize = "1.6rem";
+  remarkDiv.style.color = "#555";
+  remarkDiv.innerText = p.remark;
+  pDiv.appendChild(remarkDiv);
+}
+
       pDiv.draggable=true;
       pDiv.dataset.name=p.name;
       pDiv.dataset.doctor=p.doctor;
@@ -494,13 +510,15 @@ pDiv.addEventListener("click", ()=>{
   remarkLabel.style.display = "block";
   remarkLabel.style.marginBottom = "0.5rem";
 
-  const remarkInput = document.createElement("input");
-  remarkInput.type = "text";
-  remarkInput.value = p.remark || "";
-  remarkInput.style.width = "100%";
-  remarkInput.style.padding = "0.8rem";
-  remarkInput.style.fontSize = "2rem";
-  remarkInput.style.marginBottom = "1rem";
+const remarkInput = document.createElement("textarea"); // 改为 textarea
+remarkInput.value = p.remark || "";
+remarkInput.style.width = "100%";
+remarkInput.style.padding = "0.8rem";
+remarkInput.style.fontSize = "2rem";
+remarkInput.style.marginBottom = "1rem";
+remarkInput.style.resize = "vertical"; // 可垂直拉伸
+remarkInput.rows = 5; // 默认三行
+
 
   // 按钮容器
   const btnContainer = document.createElement("div");
