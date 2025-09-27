@@ -186,9 +186,10 @@ button:hover {
 
 .modal button {
   width: 48%;
-  margin-right: 4%;
+  margin-right: 1%;
   font-size: 2rem;
 }
+
 
 
 /* 页脚 */
@@ -266,6 +267,8 @@ div[style*="text-align: center"] {
 </div>
   
 <div class="container" id="columnsContainer"></div>
+<div id="currentPatientsSummary" style="margin-top: 2rem; padding: 1rem; background: #fef9c3; border-radius: 0.8rem; font-size: 1.8rem;"></div>
+
   
 <div class="operations">
   <div class="op-cell" id="dischargeCell">出院</div>
@@ -285,6 +288,7 @@ div[style*="text-align: center"] {
 </div>
   
 <a href="https://aoyama798.github.io/web/">
+  
 <div style="text-align: center;margin:18px;">©Aoyama</div>
 </a>
 
@@ -419,6 +423,7 @@ function openModal(label,text,callback){
 
 // 渲染医生列
 function renderColumns(){
+
   let displayPatients=showAll ? patients : patients.filter(p=>!p.discharge);
   doctors=doctors.filter(doc=>displayPatients.some(p=>p.doctor===doc));
   displayPatients.forEach(p=>{ if(p.row===undefined || p.row===null)p.row=0; });
@@ -474,6 +479,34 @@ function renderColumns(){
     container.appendChild(colDiv);
   });
   updateDoctorList();
+
+// ===== 默认显示当前在院病人列表 =====
+// ===== 默认显示当前在院病人列表 =====
+const summaryDiv = document.getElementById("currentPatientsSummary");
+summaryDiv.style.display = "block"; // 确保显示
+summaryDiv.innerHTML = "";
+
+const currentPatients = patients
+  .filter(p => !p.discharge)
+  .map(p => p.name)
+  .sort((a, b) => {
+    const numA = parseInt(a.match(/^\d+/)?.[0] || 0, 10);
+    const numB = parseInt(b.match(/^\d+/)?.[0] || 0, 10);
+    return numA - numB;
+  });
+
+const total = currentPatients.length;
+
+if(total > 0){
+  summaryDiv.innerHTML = `<strong>当前在院病人 (A-Z)【共 ${total}人】：</strong> ` + currentPatients.join(", ");
+} else {
+  summaryDiv.innerHTML = "<strong>当前在院病人：</strong> 无";
+}
+
+
+
+
+
 }
 
 // 更新医生列表
