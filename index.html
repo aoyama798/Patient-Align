@@ -462,18 +462,91 @@ function renderColumns(){
       pDiv.dataset.doctor=p.doctor;
       pDiv.dataset.row=p.row;
 
-      // 点击编辑姓名
-      pDiv.addEventListener("click",()=>{
-        editPatient=p;
-        openModal("修改病人姓名",p.name,newName=>{
-          if(newName && newName!==p.name){
-            p.name=newName;
-            // 不改变 recentPatientName
-            set(ref(db,'patients'),patients);
-            renderColumns();
-          }
-        });
-      });
+      // 点击编辑姓名、添加备注
+pDiv.addEventListener("click", ()=>{
+  editPatient = p;
+
+  const modal = modalBg.querySelector(".modal");
+  modalBg.style.display = "flex";
+
+  // 清空模态内容
+  modal.innerHTML = "";
+
+  // 姓名标签与输入框
+  const nameLabel = document.createElement("label");
+  nameLabel.innerText = "床号姓名";
+  nameLabel.style.display = "block";
+  nameLabel.style.marginBottom = "0.5rem";
+
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.value = p.name || "";
+  nameInput.style.width = "100%";
+  nameInput.style.padding = "0.8rem";
+  nameInput.style.fontSize = "2rem";
+  nameInput.style.marginBottom = "1rem";
+
+  // 备注标签与输入框
+  const remarkLabel = document.createElement("label");
+  remarkLabel.innerText = "备注代办";
+  remarkLabel.style.display = "block";
+  remarkLabel.style.marginBottom = "0.5rem";
+
+  const remarkInput = document.createElement("input");
+  remarkInput.type = "text";
+  remarkInput.value = p.remark || "";
+  remarkInput.style.width = "100%";
+  remarkInput.style.padding = "0.8rem";
+  remarkInput.style.fontSize = "2rem";
+  remarkInput.style.marginBottom = "1rem";
+
+  // 按钮容器
+  const btnContainer = document.createElement("div");
+  btnContainer.style.textAlign = "right";
+
+  const confirmBtn = document.createElement("button");
+  confirmBtn.innerText = "确认";
+  confirmBtn.style.marginRight = "1%";
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.innerText = "取消";
+
+  btnContainer.appendChild(confirmBtn);
+  btnContainer.appendChild(cancelBtn);
+
+  // 添加到模态
+  modal.appendChild(nameLabel);
+  modal.appendChild(nameInput);
+  modal.appendChild(remarkLabel);
+  modal.appendChild(remarkInput);
+  modal.appendChild(btnContainer);
+
+  // 确认操作
+  confirmBtn.onclick = () => {
+    const newName = nameInput.value.trim();
+    const newRemark = remarkInput.value.trim();
+
+    if(newName) p.name = newName;
+    p.remark = newRemark;
+
+    set(ref(db,'patients'), patients);
+    renderColumns();
+
+    modalBg.style.display = "none";
+    confirmBtn.onclick = null;
+    cancelBtn.onclick = null;
+  };
+
+  // 取消操作
+  cancelBtn.onclick = () => {
+    modalBg.style.display = "none";
+    confirmBtn.onclick = null;
+    cancelBtn.onclick = null;
+  };
+});
+
+
+      
       colDiv.appendChild(pDiv);
     });
     container.appendChild(colDiv);
