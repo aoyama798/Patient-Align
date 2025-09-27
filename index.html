@@ -234,6 +234,15 @@ div[style*="text-align: center"] {
     grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
   }
 }
+
+/* 拖动中的病人高亮（PC & iOS/微信） */
+.patient.dragging-highlight {
+  background: #ffe082 !important; /* 黄色高亮 */
+  transform: scale(1.05);         /* 稍微放大 */
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+  
 </style>
 
 
@@ -298,24 +307,54 @@ if (isIOS || isWeChat) {
   console.log("iOS 或 微信内置浏览器，启用 touch 拖拽适配");
 
   let touchDragPatient = null;
+  let dragClone = null;
 
   document.addEventListener("touchstart", e => {
     const p = e.target.closest(".patient");
     if (p) {
       touchDragPatient = p;
-      p.style.opacity = "0.5"; // 拖动时半透明
+      p.style.opacity = "0.5"; // 原始半透明
+
+      // 创建一个克隆卡片，浮动跟随手指
+      dragClone = p.cloneNode(true);
+      dragClone.style.position = "fixed";
+      dragClone.style.pointerEvents = "none";
+      dragClone.style.zIndex = "1000";
+      dragClone.style.opacity = "0.9";
+      dragClone.style.transform = "scale(1.05)";
+      document.body.appendChild(dragClone);
+
+      const touch = e.touches[0];
+      dragClone.style.left = touch.clientX + "px";
+      dragClone.style.top = touch.clientY + "px";
+    }
+  });
+
+  document.addEventListener("touchmove", e => {
+    if (dragClone) {
+      const touch = e.touches[0];
+      dragClone.style.left = touch.clientX + 10 + "px";
+      dragClone.style.top = touch.clientY + 10 + "px";
     }
   });
 
   document.addEventListener("touchend", e => {
     if (!touchDragPatient) return;
+
+    // 还原原卡片
     touchDragPatient.style.opacity = "1";
+
+    // 移除克隆
+    if (dragClone) {
+      dragClone.remove();
+      dragClone = null;
+    }
+
     const touch = e.changedTouches[0];
     const elem = document.elementFromPoint(touch.clientX, touch.clientY);
 
     const targetCol = elem?.closest(".column-container");
     const opCell = elem?.closest(".op-cell");
-
     const patientObj = patients.find(p => p.name === touchDragPatient.dataset.name);
 
     if (targetCol && patientObj) {
@@ -336,6 +375,7 @@ if (isIOS || isWeChat) {
     touchDragPatient = null;
   });
 }
+
 
   
 const firebaseConfig = {
