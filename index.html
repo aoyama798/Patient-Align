@@ -191,6 +191,7 @@ button:hover {
   width: 48%;
   margin-right: 1%;
   font-size: 2rem;
+    margin-top: 8px;
 }
 
 
@@ -307,7 +308,6 @@ import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebase
 // ======== 设备环境检测 ========
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
-
 
 
 
@@ -457,12 +457,28 @@ pDiv.addEventListener("click", () => {
   remarkInput.style.fontSize = "2rem";
   remarkInput.style.marginBottom = "1rem";
   remarkInput.style.resize = "vertical";
-  remarkInput.rows = 8;
+  remarkInput.rows = 5;
 
   // ======== 按钮 ========
   const btnContainer = document.createElement("div");
   btnContainer.style.textAlign = "right";
 
+  // 出院按钮
+const dischargeBtn = document.createElement("button");
+dischargeBtn.innerText = "出院";
+dischargeBtn.style.backgroundColor = "#f39c12";  // 橙色
+
+// 删除按钮
+const deleteBtn = document.createElement("button");
+deleteBtn.innerText = "删除";
+deleteBtn.style.backgroundColor = "#e74c3c"; // 红色
+deleteBtn.style.color = "white";
+
+// 添加到容器
+btnContainer.appendChild(dischargeBtn);
+btnContainer.appendChild(deleteBtn);
+
+  
   const confirmBtn = document.createElement("button");
   confirmBtn.innerText = "确认";
   confirmBtn.style.marginRight = "1%";
@@ -472,6 +488,8 @@ pDiv.addEventListener("click", () => {
 
   btnContainer.appendChild(confirmBtn);
   btnContainer.appendChild(cancelBtn);
+
+  
 
   // ======== 添加到模态 ========
   modal.appendChild(nameLabel);
@@ -510,7 +528,24 @@ pDiv.addEventListener("click", () => {
     confirmBtn.onclick = null;
     cancelBtn.onclick = null;
   };
+  // 出院按钮逻辑
+dischargeBtn.onclick = () => {
+  p.discharge = true;   // 标记出院
+  set(ref(db, 'patients'), patients);  // 更新数据库
+  renderColumns();       // 重新渲染
+  modalBg.style.display = "none";  // 关闭模态
+};
+
+// 删除按钮逻辑
+deleteBtn.onclick = () => {
+  const idx = patients.indexOf(p);
+  if (idx > -1) patients.splice(idx, 1);  // 从数组删除
+  set(ref(db, 'patients'), patients);     // 更新数据库
+  renderColumns();
+  modalBg.style.display = "none";
+};
 });
+
 
 
 
