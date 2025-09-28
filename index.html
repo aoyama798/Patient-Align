@@ -4,25 +4,6 @@
 <meta charset="UTF-8">
 <title>创二病人分配系统</title>
 <style>
-/* 页面整体 */
-body {
-  font-family: "Tahoma", Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 2rem;
-  background: #f4f6f8;
-  margin: 0;
-  padding: 1rem;
-  color: #333;
-}
-/* 背景层 *//* 随机壁纸 */
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: url("https://bing.img.run/rand.php") center/cover no-repeat; 
-    opacity: 0.8;  /* 控制背景透明度 0~1 */
-    z-index: -1;   /* 放在内容后面 */
-  }
-
 
 /* 标题 */
 h1 {
@@ -773,6 +754,27 @@ document.addEventListener("drop",e=>{
 });
 </script>
 
+<style>
+  /* 页面整体 */
+body {
+  font-family: "Tahoma", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 2rem;
+  background: #f4f6f8;
+  margin: 0;
+  padding: 1rem;
+  color: #333;
+}
+/* 背景层 *//* 随机壁纸 */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url("https://bing.img.run/rand.php") center/cover no-repeat; 
+    opacity: 0.8;  /* 控制背景透明度 0~1 */
+    z-index: -1;   /* 放在内容后面 */
+  }
+</style>
+  
 </body>
 </html>
 <!DOCTYPE html>
