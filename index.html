@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>病人分配系统</title>
+<title>创二病人分配系统</title>
 <style>
 /* 页面整体 */
 body {
@@ -13,18 +13,29 @@ body {
   padding: 1rem;
   color: #333;
 }
+/* 背景层 *//* 随机壁纸 */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url("https://bing.img.run/rand.php") center/cover no-repeat; 
+    opacity: 0.8;  /* 控制背景透明度 0~1 */
+    z-index: -1;   /* 放在内容后面 */
+  }
+
 
 /* 标题 */
 h1 {
   text-align: center;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
+  color: black;
+  margin-top: 3rem;
+  margin-bottom: 6rem;
   font-size: 3rem;
 }
 
 h2 {
-  color: #34495e;
-  margin-top: 1rem;
+  color: black;
+  margin-top: 3rem;
   margin-bottom: 0.5rem;
   display: inline-block;
   font-size: 2.2rem;
@@ -33,8 +44,6 @@ h2 {
 #settingsGear {
   cursor: pointer;
   font-size: 2rem;
-    margin-bottom: : 0.5rem;
-  vertical-align: middle;
 }
 
 /* 输入区域 */
@@ -257,10 +266,10 @@ div[style*="text-align: center"] {
   <img src="https://mac-upic.oss-cn-chengdu.aliyuncs.com/logo.png" 
        style="width:auto; height:2em;">
   <h1 style="margin:0;">创二病人分配系统</h1>
-
 </div>
+   <br> 
   
-  <h2 style="margin:0; font-weight:normal;">病人录入</h2>
+<h2 style="margin:0; font-weight:strong;">病人录入</h2>
 
 
 
@@ -325,6 +334,7 @@ div[style*="text-align: center"] {
     <button id="confirmNo" style="padding:6px 12px;">取消</button>
   </div>
 </div>
+
 
 
 
