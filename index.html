@@ -253,9 +253,16 @@ div[style*="text-align: center"] {
 </head>
 <body>
  
-<h1 style="text-align: center;">
-  创二病人分配系统</h2>
-<h2>病人录入</h2>
+<div style="display:flex; align-items:center; justify-content:center; gap:0.5em;">
+  <img src="https://mac-upic.oss-cn-chengdu.aliyuncs.com/logo.png" 
+       style="width:auto; height:2em;">
+  <h1 style="margin:0;">创二病人分配系统</h1>
+
+</div>
+  
+  <h2 style="margin:0; font-weight:normal;">病人录入</h2>
+
+
 
 <div>
   <input type="text" id="patientName" placeholder="病人姓名">
@@ -273,12 +280,12 @@ div[style*="text-align: center"] {
 </div>
   
 <div class="container" id="columnsContainer"></div>
-<div id="currentPatientsSummary" style="margin-top: 2rem; padding: 1rem; background: #fef9c3; border-radius: 0.8rem; font-size: 1.8rem;"></div>
+<div id="currentPatientsSummary" style="margin-top: 2rem; padding: 1rem; background: #fef9c3; border-radius: 0.8rem; font-size: 2.48rem;"></div>
 
   
 <div class="operations">
-  <div class="op-cell" id="dischargeCell">出院</div>
-  <div class="op-cell" id="deleteCell">删除</div>
+  <div class="op-cell" id="dischargeCell" style="display:none;">出院</div>       <!-- 暂时隐藏 -->
+  <div class="op-cell" id="deleteCell" style="display:none;">删除</div>          <!-- 暂时隐藏 -->
 </div>
 
 <!-- 模态框 -->
@@ -294,12 +301,35 @@ div[style*="text-align: center"] {
 </div>
   
 <a href="https://aoyama798.github.io/blog2/">
-  
-<div style="text-align: center;margin:18px;">©Aoyama798</div>
+  <div style="text-align: center;margin:18px;">©Aoyama798</div>
 </a>
 
+<!-- 二次确认模态 -->
+<div id="confirmModal" style="
+  display:none;
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.5);
+  z-index:2000;
+  align-items:center;
+  justify-content:center;">
+  <div style="
+    background:#fff;
+    padding:20px;
+    border-radius:10px;
+    width:300px;
+    text-align:center;">
+    <p id="confirmMessage" style="margin-bottom:20px;font-size:1.2rem;"></p>
+    <button id="confirmYes" style="margin-right:10px;padding:6px 12px;">确认</button>
+    <button id="confirmNo" style="padding:6px 12px;">取消</button>
+  </div>
+</div>
 
 
+
+
+  
   
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
@@ -308,6 +338,7 @@ import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebase
 // ======== 设备环境检测 ========
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
+
 
 
 
@@ -346,6 +377,33 @@ function openModal(label,text,callback){
   function closeModal(){ modalBg.style.display="none"; modalConfirm.onclick=null; modalCancel.onclick=null; }
 }
 
+// 获取确认模态相关元素
+const confirmModal = document.getElementById("confirmModal");
+const confirmMessage = document.getElementById("confirmMessage");
+const confirmYes = document.getElementById("confirmYes");
+const confirmNo = document.getElementById("confirmNo");
+
+let confirmCallback = null; // 保存点击确认后的回调函数
+
+// 打开确认模态
+function openConfirm(message, callback) {
+  confirmMessage.innerText = message;
+  confirmModal.style.display = "flex";
+  confirmCallback = callback;
+}
+
+// 绑定按钮事件
+confirmYes.onclick = () => {
+  if (confirmCallback) confirmCallback();
+  confirmModal.style.display = "none";
+};
+confirmNo.onclick = () => {
+  confirmModal.style.display = "none";
+  confirmCallback = null;
+};
+
+
+  
 // 渲染医生列
 function renderColumns(){
 
@@ -400,7 +458,7 @@ if(p.remark){
       pDiv.dataset.doctor=p.doctor;
       pDiv.dataset.row=p.row;
 
-      // 点击编辑姓名、添加备注
+// 点击编辑姓名、添加备注
 pDiv.addEventListener("click", () => {
   editPatient = p;
 
@@ -529,21 +587,27 @@ btnContainer.appendChild(deleteBtn);
     cancelBtn.onclick = null;
   };
   // 出院按钮逻辑
+// 出院按钮
 dischargeBtn.onclick = () => {
-  p.discharge = true;   // 标记出院
-  set(ref(db, 'patients'), patients);  // 更新数据库
-  renderColumns();       // 重新渲染
-  modalBg.style.display = "none";  // 关闭模态
+  openConfirm(`确认让【${p.name}】出院吗？`, () => {
+    p.discharge = true;
+    set(ref(db, 'patients'), patients);
+    renderColumns();
+    modalBg.style.display = "none";
+  });
 };
 
-// 删除按钮逻辑
+// 删除按钮
 deleteBtn.onclick = () => {
-  const idx = patients.indexOf(p);
-  if (idx > -1) patients.splice(idx, 1);  // 从数组删除
-  set(ref(db, 'patients'), patients);     // 更新数据库
-  renderColumns();
-  modalBg.style.display = "none";
+  openConfirm(`确认要删除患者【${p.name}】吗？`, () => {
+    const idx = patients.indexOf(p);
+    if (idx > -1) patients.splice(idx, 1);
+    set(ref(db, 'patients'), patients);
+    renderColumns();
+    modalBg.style.display = "none";
+  });
 };
+
 });
 
 
