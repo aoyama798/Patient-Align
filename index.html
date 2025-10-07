@@ -4,7 +4,23 @@
 <meta charset="UTF-8">
 <title>创二病人分配系统</title>
 <style>
-
+body {
+  font-family: "Tahoma", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 2rem;
+  background: #f4f6f8;
+  margin: 0;
+  padding: 1rem;
+  color: #333;
+}
+/* 背景层 *//* 随机壁纸 */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url("https://img2.wallspic.com/previews/9/9/4/1/8/181499/181499-2025-xiang_fa-wu_dian_hua_1-bai_se-500x.jpg") center/cover no-repeat; 
+    opacity: 0.8;  /* 控制背景透明度 0~1 */
+    z-index: -1;   /* 放在内容后面 */
+  }
 /* 标题 */
 h1 {
   text-align: center;
@@ -246,7 +262,7 @@ div[style*="text-align: center"] {
 <div style="display:flex; align-items:center; justify-content:center; gap:0.5em;">
   <img src="https://mac-upic.oss-cn-chengdu.aliyuncs.com/logo.png" 
        style="width:auto; height:2em;">
-  <h1 style="margin:0;">创二病人分配系统</h1>
+  <h1 style="margin:0;">创二病人看板系统</h1>
 </div>
    <br> 
   
